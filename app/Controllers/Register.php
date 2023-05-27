@@ -1,0 +1,54 @@
+<?php
+
+namespace App\Controllers;
+
+use App\Models\UsersModel;
+
+class Register extends BaseController
+{
+    public function index()
+    {
+        return view('vw_register');
+    }
+
+    public function process()
+    {
+        if (!$this->validate([
+            'username' => [
+                'rules' => 'required|min_length[4]|max_length[8]|is_unique[users.username]',
+                'errors' => [
+                    'required' => '{field} Harus diisi',
+                    'min_length' => '{field} Minimal 4 Karakter',
+                    'max_length' => '{field} Maksimal 8 Karakter',
+                    'is_unique' => 'Username sudah digunakan sebelumnya'
+                ]
+            ],
+            'password' => [
+                'rules' => 'required|min_length[4]|max_length[8]',
+                'errors' => [
+                    'required' => '{field} Harus diisi',
+                    'min_length' => '{field} Minimal 4 Karakter',
+                    'max_length' => '{field} Maksimal 8 Karakter',
+                ]
+            ],
+            'name' => [
+                'rules' => 'required|min_length[4]|max_length[20]',
+                'errors' => [
+                    'required' => '{field} Harus diisi',
+                    'min_length' => '{field} Minimal 4 Karakter',
+                    'max_length' => '{field} Maksimal 20 Karakter',
+                ]
+            ],
+        ])) {
+            session()->setFlashdata('error', $this->validator->listErrors());
+            return redirect()->back()->withInput();
+        }
+        $users = new UsersModel();
+        $users->insert([
+            'username' => $this->request->getVar('username'),
+            'password' => password_hash($this->request->getVar('password'), PASSWORD_BCRYPT),
+            'name' => $this->request->getVar('name')
+        ]);
+        return redirect()->to('/login');
+    }
+}
